@@ -1,30 +1,89 @@
 # Найти k-ый по величине элемент массива.
 # Важно: нельзя просто отсортировать массив. Также не используем кучи.
 
-def quickselect(nums, k):
-    k_index = k - 1  # k → индекс с 0
-    return _quickselect(nums.copy(), 0, len(nums) - 1, k_index)
+# Функция для поиска k-го по величине элемента в массиве, используя алгоритм QuickSelect
+def find_Kth_Largest(nums, k):
 
-def _quickselect(nums, left, right, k_index):
-    if left == right:
-        return nums[left]
+    def partition(left, right):
+        # Разбивает массив на две части относительно опорного элемента (pivot)
+        # Элементы <= pivot перемещаются влево, > pivot — вправо
+        # Возвращает итоговый индекс pivot после перестановки
 
-    pivot_index = partition(nums, left, right)
+        pivot = nums[right]  # выбираем последний элемент как pivot — опорный для разбиения
+        i = left  # указатель для отслеживания позиции элементов <= pivot
 
-    if k_index == pivot_index:
-        return nums[k_index]
-    elif k_index < pivot_index:
-        return _quickselect(nums, left, pivot_index - 1, k_index)
-    else:
-        new_k_index = k_index - (pivot_index - left + 1)
-        return _quickselect(nums, pivot_index + 1, right, new_k_index)
+        # проходим через все элементы от left до right-1
+        for j in range(left, right):
+            # если текущий элемент меньше или равен pivot
+            if nums[j] <= pivot:
+                # меняем местами элементы на позициях i и j
+                nums[i], nums[j] = nums[j], nums[i]
+                i += 1  # сдвигаем указатель i вправо
 
-def partition(nums, left, right):
-    pivot = nums[right]
-    i = left
-    for j in range(left, right):
-        if nums[j] <= pivot:
-            nums[i], nums[j] = nums[j], nums[i]
-            i += 1
-    nums[i], nums[right] = nums[right], nums[i]
-    return i
+        # ставим pivot на его итоговое место (между левой и правой частями)
+        nums[i], nums[right] = nums[right], nums[i]
+        return i  # возвращаем индекс pivot после перестановки
+
+    def quickselect(left, right, k):
+        # Рекурсивно ищет k-й элемент в отсортированном массиве
+        # Использует разбиение partition для сужения области поиска
+
+        if left == right:
+            # базовый случай: если область поиска сузилась до одного элемента
+            return nums[left]
+
+        # разбиваем массив и получаем индекс pivot
+        pivot_index = partition(left, right)
+
+        if k == pivot_index:
+            # если k совпадает с индексом pivot — нашли искомый элемент
+            return nums[k]
+        elif k < pivot_index:
+            # если k меньше индекса pivot — ищем в левой части массива
+            return quickselect(left, pivot_index - 1, k)
+        else:
+            # если k больше индекса pivot — ищем в правой части массива
+            return quickselect(pivot_index + 1, right, k)
+
+    # k-й по величине элемент имеет индекс n-k в отсортированном массиве
+    # преобразуем задачу поиска k-го наибольшего в поиск элемента с индексом (len(nums) - k)
+    return quickselect(0, len(nums) - 1, len(nums) - k)
+
+# Старт программы
+if __name__ == "__main__":
+    # Тесты
+
+    # Поиск элемента в массиве без дубликатов
+    print(find_Kth_Largest([3, 2, 1, 5, 6, 4], 2))  # 2-й по величине элемент — 5
+    print(find_Kth_Largest([10, 7, 11, 5, 13, 8], 3))  # 3-й по величине — 10
+
+    # Массив с дубликатами
+    print(find_Kth_Largest([3, 3, 3, 3], 1))  # Все элементы одинаковые - 3
+    print(find_Kth_Largest([1, 2, 2, 3, 3], 3))  # Дубликаты, k в середине - 2
+    print(find_Kth_Largest([5, 5, 5, 1, 1], 2))  # Дубликаты, k указывает на меньший элемент - 1
+
+    # Первый и последний элементы
+    print(find_Kth_Largest([1, 2, 3, 4, 5], 1))  # Наибольший элемент - 5
+    print(find_Kth_Largest([1, 2, 3, 4, 5], 5))  # Наименьший элемент - 1
+    print(find_Kth_Largest([5, 4, 3, 2, 1], 1))  # Уже отсортированный массив, max - 5
+    print(find_Kth_Largest([5, 4, 3, 2, 1], 5))  # Уже отсортированный массив, min - 1
+
+    # Массив из одного элемента
+    print(find_Kth_Largest([52], 1))  # Единственный элемент, k=1 - 52
+
+    # Массив из двух элементов
+    print(find_Kth_Largest([1, 2], 1))  # Больший из двух - 2
+    print(find_Kth_Largest([1, 2], 2))  # Меньший из двух - 1
+    print(find_Kth_Largest([3, 3], 1))  # Два одинаковых элемента - 3
+
+    # Неотсортированный массив с отрицательными значениями
+    print(find_Kth_Largest([-1, -5, -3, -2], 2))  # Отрицательные числа - (-2)
+    print(find_Kth_Largest([100, -100, 0, 50], 2))  # Смешанные значения - 50
+
+    # Случайные перестановки одного и того же набора чисел
+    print(find_Kth_Largest([3, 1, 4, 1, 5], 2))  # k-й элемент в перестановке - 4
+    print(find_Kth_Largest([5, 1, 3, 4, 1], 2))  # Другая перестановка, k=2 - 4
+
+    # Числа с плавающей точкой
+    print(find_Kth_Largest([3.14, 2.71, 1.41, 1.73], 2))  # Float числа - 2.71
+    print(find_Kth_Largest([0.1, 0.01, 0.001], 1))  # Маленькие float - 0.1
